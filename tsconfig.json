@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist", // Specifies the output directory
+    "rootDir": "./src", // Specifies the root directory of input files
+    "target": "ES6",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}
