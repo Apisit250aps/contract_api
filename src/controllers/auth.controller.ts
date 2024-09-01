@@ -7,7 +7,6 @@ import { generateToken } from "../utils/jwt"
 async function authRegister(req: Request<IUser>, res: Response) {
   try {
     const { username, password, email } = req.body
-    console.table(req.body)
     // Check if the username or email already exists
     const existingUser = await User.findOne({ $or: [{ username }, { email }] })
     if (existingUser) {
