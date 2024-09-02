@@ -23,7 +23,7 @@ async function authRegister(req: Request<IUser>, res: Response) {
       password: hashedPassword
     })
 
-    return res.status(201).json({ ...newUser })
+    return res.status(201).json({ newUser })
   } catch (error) {
     return res.status(500).json({ error })
   }
