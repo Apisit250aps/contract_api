@@ -15,7 +15,7 @@ declare global {
   }
 }
 
-export const authenticateJWT = async (
+export const authenticated = async (
   req: Express.Request,
   res: Response,
   next: NextFunction
