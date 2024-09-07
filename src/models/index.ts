@@ -1,5 +1,4 @@
 import mongoose from "mongoose"
-import User from "./user.model"
 
 import { db_url } from "../configs"
 
@@ -15,4 +14,4 @@ const connectToDatabase = async () => {
   }
 }
 
-export { connectToDatabase, User }
+export { connectToDatabase }
