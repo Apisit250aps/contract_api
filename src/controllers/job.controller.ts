@@ -1,5 +1,3 @@
-// src/controllers/job.controller.ts
-
 import { Request, Response } from "express"
 import Job, { IJob } from "../models/job.model"
 

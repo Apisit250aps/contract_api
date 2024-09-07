@@ -1,5 +1,3 @@
-// src/controllers/worker.controller.ts
-
 import { Request, Response } from "express"
 import Worker, { IWorker } from "../models/worker.model"
 

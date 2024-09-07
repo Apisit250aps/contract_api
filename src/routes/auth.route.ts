@@ -1,8 +1,8 @@
 import { Router } from "express"
-import authController from "../controllers/auth.controller"
+import AuthController from "../controllers/auth.controller";
 
 const auth = Router()
-auth.post("/register", authController.authRegister)
-auth.post("/login", authController.authLogin)
+auth.post("/register", AuthController.authLogin)
+auth.post("/login", AuthController.authLogin)
 
 export default auth
