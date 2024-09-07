@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 
-import { IUser, User } from "../models/user.model"
+import User, { IUser}  from "../models/user.model"
 import { comparePasswords, hashPassword } from "../utils/password"
 import { generateToken } from "../utils/jwt"
 
