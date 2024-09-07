@@ -1,9 +1,9 @@
 import { Request, Response } from "express"
 import Job, { IJob } from "../models/job.model"
 
-const createJob = async (req: Request, res: Response) => {
+const createJob = async (req: Request<{ body: IJob }>, res: Response) => {
   try {
-    const jobData: IJob = req.body
+    const jobData = req.body
     const newJob = new Job(jobData)
     const savedJob = await newJob.save()
     res.status(201).json(savedJob)
@@ -14,10 +14,29 @@ const createJob = async (req: Request, res: Response) => {
 
 const getAllJobs = async (req: Request, res: Response) => {
   try {
-    const jobs = await Job.find().populate("workers")
-    res.json(jobs)
+    const page = Math.max(1, parseInt(req.query.page as string) || 1)
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(req.query.limit as string) || 10)
+    )
+
+    const skip = (page - 1) * limit
+    const jobs = await Job.find().populate("workers").skip(skip).limit(limit)
+
+    const totalJobs = await Job.countDocuments()
+    const totalPages = Math.ceil(totalJobs / limit)
+
+    res.json({
+      jobs,
+      currentPage: page,
+      totalPages,
+      totalJobs,
+      jobsPerPage: limit
+    })
   } catch (error) {
-    res.status(500).json({ message: "Error fetching jobs", error })
+    res
+      .status(500)
+      .json({ message: "Error fetching jobs", error: (error as Error).message })
   }
 }
 

@@ -4,7 +4,7 @@ const JWT_SECRET = process.env.SECRET_KEY as string
 
 export function generateToken(
   payload: object,
-  expiresIn: string = "1d"
+  expiresIn: string = "30d"
 ): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn })
 }

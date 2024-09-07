@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 
-import User, { IUser}  from "../models/user.model"
+import User, { IUser } from "../models/user.model"
 import { comparePasswords, hashPassword } from "../utils/password"
 import { generateToken } from "../utils/jwt"
 
@@ -53,5 +53,28 @@ async function authLogin(req: Request, res: Response) {
     return res.status(500).json({ error })
   }
 }
+async function checkAuth(req: Request, res: Response) {
+  try {
+    // The user object is attached to the request by the authenticateJWT middleware
+    const user = req.user as IUser
 
-export default { authRegister, authLogin }
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" })
+    }
+
+    // Fetch fresh user data from the database
+    const freshUserData = await User.findById(user._id).select("-password")
+
+    if (!freshUserData) {
+      return res.status(404).json({ message: "User not found" })
+    }
+
+    return res.status(200).json({ user: freshUserData })
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "An error occurred while checking authentication" })
+  }
+}
+
+export default { authRegister, authLogin, checkAuth }
