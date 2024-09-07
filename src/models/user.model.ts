@@ -3,7 +3,6 @@ import mongoose, { Document, Schema } from "mongoose"
 export interface IUser extends Document {
   username: string
   password: string
-  createdAt?: Date
 }
 
 const UserSchema: Schema<IUser> = new Schema(

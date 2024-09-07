@@ -6,9 +6,9 @@ import { generateToken } from "../utils/jwt"
 
 async function authRegister(req: Request<IUser>, res: Response) {
   try {
-    const { username, password, email } = req.body
+    const { username, password} = req.body
     // Check if the username or email already exists
-    const existingUser = await User.findOne({ $or: [{ username }, { email }] })
+    const existingUser = await User.findOne({ $or: [{ username }] })
     if (existingUser) {
       return res
         .status(400)
@@ -19,7 +19,6 @@ async function authRegister(req: Request<IUser>, res: Response) {
     const hashedPassword = await hashPassword(password) // Ensure this function returns a promise
     const newUser = await User.create({
       username,
-      email,
       password: hashedPassword
     })
 
@@ -29,7 +28,7 @@ async function authRegister(req: Request<IUser>, res: Response) {
   }
 }
 
-async function authLogin(req: Request, res: Response) {
+async function authLogin(req: Request<{body:IUser}>, res: Response) {
   try {
     const { username, password } = req.body
 
@@ -44,12 +43,12 @@ async function authLogin(req: Request, res: Response) {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid username or password!" })
     }
-
     // Generate a JWT token
     const token = generateToken({ id: user._id, username: user.username })
 
     return res.status(200).json({ token })
   } catch (error) {
+    
     return res.status(500).json({ error })
   }
 }

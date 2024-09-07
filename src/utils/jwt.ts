@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken"
+import { secret_key } from "../configs";
 
-const JWT_SECRET = process.env.SECRET_KEY as string
+const JWT_SECRET = secret_key as string
 
 export function generateToken(
   payload: object,
