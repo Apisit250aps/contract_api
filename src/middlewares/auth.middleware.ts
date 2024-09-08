@@ -25,7 +25,7 @@ export const authenticated = async (
   if (!authHeader) {
     return res.status(401).json({ error: "Authorization header is missing" })
   }
-
+  
   const tokenParts = authHeader.split(" ")
   if (tokenParts.length !== 2 || tokenParts[0] !== "Bearer") {
     return res.status(401).json({ error: "Invalid token format" })
@@ -38,7 +38,7 @@ export const authenticated = async (
     const user = await User.findById(decoded.id).select("-password")
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" })
+      return res.status(401).json({ error: "User not found" })
     }
 
     req.user = user

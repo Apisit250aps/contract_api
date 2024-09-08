@@ -1,6 +1,13 @@
 import { Request, Response } from "express"
 import Worker, { IWorker } from "../models/worker.model"
 
+interface PaginationResult<T> {
+  data: T[];
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+}
+
 const createWorker = async (req: Request, res: Response) => {
   try {
     const workerData: IWorker = req.body
@@ -12,14 +19,34 @@ const createWorker = async (req: Request, res: Response) => {
   }
 }
 
+
 const getAllWorkers = async (req: Request, res: Response) => {
   try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalItems = await Worker.countDocuments();
+    const totalPages = Math.ceil(totalItems / limit);
+
     const workers = await Worker.find()
-    res.json(workers)
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const result: PaginationResult<typeof workers[0]> = {
+      data: workers,
+      currentPage: page,
+      totalPages,
+      totalItems,
+    };
+
+    res.json(result);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching workers", error })
+    console.error('Error fetching workers:', error);
+    res.status(500).json({ message: "Error fetching workers", error: (error as Error).message });
   }
-}
+};
 
 const getWorkerById = async (req: Request, res: Response) => {
   try {

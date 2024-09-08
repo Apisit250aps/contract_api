@@ -1,34 +1,32 @@
 import { Request, Response } from "express"
-
 import User, { IUser } from "../models/user.model"
 import { comparePasswords, hashPassword } from "../utils/password"
 import { generateToken } from "../utils/jwt"
 
-async function authRegister(req: Request<IUser>, res: Response) {
+async function authRegister(req: Request<{ body: IUser }>, res: Response) {
   try {
-    const { username, password} = req.body
-    // Check if the username or email already exists
-    const existingUser = await User.findOne({ $or: [{ username }] })
+    const { username, password } = req.body
+
+    const existingUser = await User.findOne({ username })
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ message: "Username or Email already exists!" })
+      return res.status(400).json({ message: "Username already exists!" })
     }
 
-    // Hash the password and create a new user
-    const hashedPassword = await hashPassword(password) // Ensure this function returns a promise
+    const hashedPassword = await hashPassword(password)
     const newUser = await User.create({
       username,
       password: hashedPassword
     })
 
-    return res.status(201).json({ newUser })
+    return res
+      .status(201)
+      .json({ message: "Register successfully!", user: newUser })
   } catch (error) {
     return res.status(500).json({ error })
   }
 }
 
-async function authLogin(req: Request<{body:IUser}>, res: Response) {
+async function authLogin(req: Request<{ body: IUser }>, res: Response) {
   try {
     const { username, password } = req.body
 
@@ -48,7 +46,6 @@ async function authLogin(req: Request<{body:IUser}>, res: Response) {
 
     return res.status(200).json({ token })
   } catch (error) {
-    
     return res.status(500).json({ error })
   }
 }
