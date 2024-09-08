@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import Worker, { IWorker } from "../models/worker.model"
 
-interface PaginationResult<T> {
+export interface PaginationResult<T> {
   data: T[];
   currentPage: number;
   totalPages: number;

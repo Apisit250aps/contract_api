@@ -1,5 +1,6 @@
 import { Request, Response } from "express"
 import Job, { IJob } from "../models/job.model"
+import { PaginationResult } from "./worker.controller";
 
 const createJob = async (req: Request<{ body: IJob }>, res: Response) => {
   try {
@@ -25,14 +26,14 @@ const getAllJobs = async (req: Request, res: Response) => {
 
     const totalJobs = await Job.countDocuments()
     const totalPages = Math.ceil(totalJobs / limit)
-
-    res.json({
-      jobs,
+    const totalItems = await Job.countDocuments()
+    const result: PaginationResult<(typeof jobs)[0]> = {
+      data: jobs,
       currentPage: page,
       totalPages,
-      totalJobs,
-      jobsPerPage: limit
-    })
+      totalItems
+    }
+    res.json(result)
   } catch (error) {
     res
       .status(500)
