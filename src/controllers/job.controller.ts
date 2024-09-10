@@ -1,6 +1,100 @@
 import { Request, Response } from "express"
 import Job, { IJob } from "../models/job.model"
-import { PaginationResult } from "./worker.controller";
+import { PaginationResult } from "./worker.controller"
+import mongoose, { Mongoose } from "mongoose"
+import attendance from "../routes/attendance.route";
+
+const jobDataPipeline = (match = {}) => [
+  { $match: match },
+  {
+    $lookup: {
+      from: "workers",
+      localField: "workers",
+      foreignField: "_id",
+      as: "workers"
+    }
+  },
+  {
+    $lookup: {
+      from: "attendances",
+      let: { jobId: "$_id" },
+      pipeline: [
+        { $match: { $expr: { $eq: ["$job", "$$jobId"] } } },
+        {
+          $group: {
+            _id: {
+              date: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+              worker: "$worker"
+            },
+            attendanceId: { $first: "$_id" }, 
+            present: { $max: "$present" } // Using $max to get boolean value
+          }
+        },
+        {
+          $group: {
+            _id: "$_id.date",
+            workers: {
+              $push: {
+                worker: "$_id.worker",
+                attendanceId: "$attendanceId",  // เพิ่มบรรทัดนี้
+                present: "$present"
+              }
+            },
+            totalPresent: { $sum: { $cond: ["$present", 1, 0] } }
+          }
+        },
+        { $sort: { _id: 1 } }
+      ],
+      as: "attendance"
+    }
+  },
+  {
+    $project: {
+      _id: 1,
+      title: 1,
+      description: 1,
+      startDate: 1,
+      endDate: 1,
+      areaSize: 1,
+      ratePerArea: 1,
+      workers: 1,
+      attendance: {
+        $map: {
+          input: "$attendance",
+          as: "day",
+          in: {
+            date: "$$day._id",
+            totalPresent: "$$day.totalPresent",
+            workers: {
+              $map: {
+                input: "$$day.workers",
+                as: "workerAttendance",
+                in: {
+                  worker: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: "$workers",
+                          as: "w",
+                          cond: {
+                            $eq: ["$$w._id", "$$workerAttendance.worker"]
+                          }
+                        }
+                      },
+                      0
+                    ]
+                  },
+                  attendanceId: "$$workerAttendance.attendanceId",
+                  present: "$$workerAttendance.present"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+];
 
 const createJob = async (req: Request<{ body: IJob }>, res: Response) => {
   try {
@@ -43,7 +137,10 @@ const getAllJobs = async (req: Request, res: Response) => {
 
 const getJobById = async (req: Request, res: Response) => {
   try {
-    const job = await Job.findById(req.params.id).populate("workers")
+    console.log(req.params.id)
+    const jobId = new mongoose.Types.ObjectId(req.params.id)
+    const pipeline = jobDataPipeline({ _id: jobId })
+    const job = await Job.aggregate(pipeline as [])
     if (job) {
       res.json(job)
     } else {

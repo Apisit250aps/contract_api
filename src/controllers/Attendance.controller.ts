@@ -1,14 +1,36 @@
 import { Request, Response } from "express"
 import Attendance, { IAttendance } from "../models/attendance.model"
+import mongoose from "mongoose"
 
 const createAttendance = async (req: Request, res: Response) => {
   try {
     const attendanceData: IAttendance = req.body
+
+    // Check if an attendance record already exists for this job and date
+    const existingAttendance = await Attendance.findOne({
+      job: attendanceData.job,
+      date: attendanceData.date,
+      worker: attendanceData.worker
+    })
+
+    if (existingAttendance) {
+      return res.status(409).json({
+        message:
+          "Attendance record already exists for this job, worker, and date",
+        existingAttendance
+      })
+    }
+
+    // If no existing record, create a new one
     const newAttendance = new Attendance(attendanceData)
     const savedAttendance = await newAttendance.save()
     res.status(201).json(savedAttendance)
   } catch (error) {
-    res.status(400).json({ message: "Error creating attendance", error })
+    console.error("Error in createAttendance:", error)
+    res.status(400).json({
+      message: "Error creating attendance",
+      error: error instanceof Error ? error.message : String(error)
+    })
   }
 }
 
@@ -38,11 +60,10 @@ const getAttendanceById = async (req: Request, res: Response) => {
 
 const updateAttendance = async (req: Request, res: Response) => {
   try {
-    const updatedAttendance = await Attendance.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    ).populate("worker job")
+    const id = new mongoose.Types.ObjectId(req.params.id)
+    const updatedAttendance = await Attendance.findByIdAndUpdate(id, req.body, {
+      new: true
+    }).populate("worker job")
     if (updatedAttendance) {
       res.json(updatedAttendance)
     } else {
